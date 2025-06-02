@@ -24,8 +24,7 @@ config = RunConfig(
     tracing_disabled=True
 )
 
-# --- Agent Definitions ---
-
+# --- Define Your Agents ---
 def get_agent(name, instructions):
     return Agent(
         name=name,
@@ -33,39 +32,56 @@ def get_agent(name, instructions):
         model=model
     )
 
-async def delegate_task_to_all_agents(task_prompt: str):
-    agents_info = [
-        ("Marketing Agent", "You are a creative marketing expert. Explain things in a way that grabs customer attention and highlights product benefits."),
-        ("Mobile App Developer Agent", "You are a mobile app developer. Think about how this concept can be applied or enhanced through a mobile app."),
-        ("Web Developer Agent", "You are a web developer. Focus on how this concept can be presented or implemented in a website or web app."),
-    ]
+AGENTS = {
+    "Marketing": get_agent("Marketing Agent", "You are a marketing expert. Only respond to marketing and branding questions."),
+    "Web": get_agent("Web Developer Agent", "You are a web developer. Only respond to website development related queries."),
+    "Mobile": get_agent("Mobile App Developer Agent", "You are a mobile app developer. Only respond to mobile app related queries.")
+}
 
-    results = []
+AGENT_KEYWORDS = {
+    "Marketing": ["brand", "marketing", "audience", "sales", "promotion", "market"],
+    "Web": ["website", "web page", "frontend", "backend", "HTML", "CSS", "JavaScript"],
+    "Mobile": ["mobile app", "android", "ios", "flutter", "react native", "play store"]
+}
 
-    for name, instructions in agents_info:
-        agent = get_agent(name, instructions)
-        result = await Runner.run(agent, task_prompt, run_config=config)
-        results.append((name, result.final_output))
+irrelevant_shown = set()
 
-    return results
-
-# --- Chainlit Entry Point ---
+@cl.on_chat_start
+async def on_start():
+    welcome = (
+        "👋 **Welcome to Smart Business Assistant!**\n\n"
+        "This assistant includes the following expert agents:\n"
+        "1. 💼 Marketing Agent\n"
+        "2. 🌐 Web Developer Agent\n"
+        "3. 📱 Mobile App Developer Agent\n\n"
+        "📌 **Note:** Please ask one question at a time.\n"
+        "Only the relevant agent will respond.\n"
+        "If the question is irrelevant, it will be politely declined."
+    )
+    await cl.Message(content=welcome).send()
 
 @cl.on_message
 async def handle_user_message(message: cl.Message):
-    user_input = message.content
+    user_input = message.content.lower()
+    matching_agent = None
 
-    manager = get_agent(
-        "Manager Agent",
-        "You are a team manager. Your job is to assign tasks to other agents and collect their responses."
-    )
+    for agent_name, keywords in AGENT_KEYWORDS.items():
+        if any(keyword in user_input for keyword in keywords):
+            matching_agent = agent_name
+            break
 
-    await cl.Message(content="🧠 Manager Agent is delegating the task...").send()
-
-    task_prompt = user_input or "Tell me something interesting about bladeless fans"
-
-    results = await delegate_task_to_all_agents(task_prompt)
-
-    # Display all agent results
-    for name, output in results:
-        await cl.Message(content=f"**{name} says:**\n{output}").send()
+    if matching_agent:
+        agent = AGENTS[matching_agent]
+        result = await Runner.run(agent, message.content, run_config=config)
+        await cl.Message(content=f"**{agent.name} says:**\n{result.final_output}").send()
+    else:
+        user_id = cl.user_session.get("id", "default")
+        if user_id not in irrelevant_shown:
+            msg = (
+                "🤖 Sorry, none of our agents can assist with this query.\n"
+                "Please ask something related to marketing, web, or mobile app development."
+            )
+            await cl.Message(content=msg).send()
+            irrelevant_shown.add(user_id)
+        else:
+            pass  # Ignore silently
