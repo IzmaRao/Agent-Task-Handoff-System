@@ -1,39 +1,20 @@
-# 🤖 Agentic AI Task - Multi-Agent System using Gemini
+# 🤖 Multi-Agent Chainlit Assistant
 
-This project is part of a learning task assigned by **Sir Hamzah Syed** during our Agentic AI course at GIAIC. The goal was to implement a multi-agent system where a **Manager Agent** assigns a query to multiple role-based agents.
+This project demonstrates a multi-agent system powered by [Chainlit](https://www.chainlit.io/) where a **Manager Agent** assigns tasks to three specialized agents:
 
-## 🔍 Project Description
+- 🎯 **Marketing Agent** – Crafts creative and benefit-driven content.
+- 📱 **Mobile App Developer Agent** – Suggests mobile app ideas or features.
+- 💻 **Web Developer Agent** – Gives web implementation ideas or approaches.
 
-The system demonstrates how different AI agents can collaborate and respond to a single task with distinct roles and perspectives using **Google Gemini API**.
+Each agent is powered by Google Gemini (`gemini-2.0-flash`) using the LangGraph `agents` framework.
 
-### 🧠 Agents Involved:
-- **Manager Agent**: Delegates the task and initiates the run.
-- **Marketing Agent**: Responds creatively with product appeal in mind.
-- **Mobile App Developer Agent**: Provides app-focused insights.
-- **Web Developer Agent**: Offers ideas from a web development viewpoint.
+## 🛠 Features
 
-## ⚙️ Tech Stack
-
-- **Python 3.10+**
-- **asyncio**
-- **Google Gemini (via OpenAI-compatible API)**
-- **Custom Agentic AI Framework**
+- ✅ Chainlit-powered conversational UI
+- 🤝 Multi-agent task delegation
+- 🔐 Uses `.env` for API key (Google Gemini)
+- 📦 Simple, extendable structure
 
 
-## ✅ What This Project Demonstrates
-
-- Role-based agent instructions
-- Multi-agent communication and task distribution
-- Real-world use of **asynchronous Python** and **LLM coordination**
-- Building blocks of Agentic AI systems
-
-## 🙌 Special Thanks
-
-Grateful to **Sir Hamzah Syed** for the opportunity to learn Agentic AI through practical implementation and teamwork simulation.
-
----
-
-## 📄 License
-
-This project is for educational purposes only.
-
+## 💡 How it Works
+- The manager agent delegates the same task (user input) to all three agents and collects their unique responses. It's a modular structure that can be extended with more roles or smarter routing logic.
